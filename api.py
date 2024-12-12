@@ -1,7 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from typing import List, Dict
 import psycopg2
-from dotenv import load_dotenv
 from collections import defaultdict
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
