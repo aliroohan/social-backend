@@ -26,17 +26,17 @@ graph = defaultdict(set)
 users = {}
 ids = {}
 
-# origins = [
-#        "http://localhost:4200",  # Your Angular app's URL
-#    ]
+origins = [
+       "http://localhost:4200",  # Your Angular app's URL
+   ]
 
-# app.add_middleware(
-#        CORSMiddleware,
-#        allow_origins=origins,
-#        allow_credentials=True,
-#        allow_methods=["*"],  # Allows all methods (GET, POST, OPTIONS, etc.)
-#        allow_headers=["*"],  # Allows all headers
-#    )
+app.add_middleware(
+       CORSMiddleware,
+       allow_origins=origins,
+       allow_credentials=True,
+       allow_methods=["*"],  # Allows all methods (GET, POST, OPTIONS, etc.)
+       allow_headers=["*"],  # Allows all headers
+   )
 
 
 def initialize_db():
