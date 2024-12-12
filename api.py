@@ -27,7 +27,8 @@ users = {}
 ids = {}
 
 origins = [
-       "https://social-frontend-tau.vercel.app/",  # Your Angular app's URL
+       "https://social-frontend-tau.vercel.app/",
+        "http://localhost:4200",
    ]
 
 app.add_middleware(
