@@ -106,6 +106,7 @@ def read_root():
 
 @app.get("/posts/", response_model=List[Post])
 async def get_posts(user_id: int) -> List[Post]:
+    load_data()
     try:
         cursor.execute("SELECT content FROM posts WHERE user_id = %s", (user_id,))
         posts = cursor.fetchall()
@@ -116,6 +117,7 @@ async def get_posts(user_id: int) -> List[Post]:
 
 @app.get("/friends/{user_id}", response_model=List[User])
 async def get_friends(user_id: int) -> List[User]:
+    load_data()
     try:
         list1 = []
         if user_id not in graph:
@@ -129,6 +131,7 @@ async def get_friends(user_id: int) -> List[User]:
 
 @app.get("/mutual-friends/{user_id1}/{user_id2}")
 async def get_mutual_friends(user_id1: int, user_id2: int) -> List[int]:
+    load_data()
     try:
         if user_id1 not in graph or user_id2 not in graph:
             raise HTTPException(status_code=404, detail="One or both users not found")
@@ -140,6 +143,7 @@ async def get_mutual_friends(user_id1: int, user_id2: int) -> List[int]:
 
 @app.get("/suggested-friends/{user_id}")
 async def get_suggested_friends(user_id: int) -> List[int]:
+    load_data()
     try:
         if user_id not in graph:
             raise HTTPException(status_code=404, detail="User not found")
@@ -156,6 +160,7 @@ async def get_suggested_friends(user_id: int) -> List[int]:
 
 @app.post("/users/")
 async def create_user(name: str, email: str, password: str) -> Dict:
+    load_data()
     if name in ids.keys():
         raise HTTPException(status_code=400, detail="User already exists")
     try:
@@ -169,6 +174,7 @@ async def create_user(name: str, email: str, password: str) -> Dict:
 
 @app.get("/user/")
 async def get_user(name: str, password: str):
+    load_data()
     if name not in ids.keys():
         raise HTTPException(status_code=404, detail="User not found")
     else:
@@ -191,6 +197,7 @@ async def get_user(name: str, password: str):
 
 @app.post("/posts/")
 async def create_post(user_id: int, content: str) -> Dict:
+    load_data()
     try:
         cursor.execute("INSERT INTO posts (user_id, content) VALUES (%s, %s)", (user_id, content))
         db.commit()
@@ -200,6 +207,7 @@ async def create_post(user_id: int, content: str) -> Dict:
 
 @app.post("/friend/{user_id1}/{user_id2}")
 async def create_friendship(user_id1: int, user_id2: int) -> Dict:
+    load_data()
     try:
         if user_id1 == user_id2:
             raise HTTPException(status_code=400, detail="Users cannot be friends with themselves")
