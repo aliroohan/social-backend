@@ -6,7 +6,6 @@ from collections import defaultdict
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
-from sqlalchemy import create_engine
 
 app = FastAPI()
 
@@ -29,15 +28,6 @@ graph = defaultdict(set)
 users = {}
 ids = {}
 
-USER = os.getenv("user")
-PASSWORD = os.getenv("password")
-HOST = os.getenv("host")
-PORT = os.getenv("port")
-DBNAME = os.getenv("dbname")
-
-# Construct the SQLAlchemy connection string
-DATABASE_URL = f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}?sslmode=require"
-
 origins = [
        "https://social-frontend-tau.vercel.app/",
         "http://localhost:4200",
@@ -55,7 +45,13 @@ app.add_middleware(
 def initialize_db():
     global db, cursor
     try:
-        db = create_engine(DATABASE_URL)
+        db = psycopg2.connect(
+        user=os.getenv("user"),
+        password=os.getenv("password"),
+        host=os.getenv("host"),
+        port=os.getenv("port"),
+        dbname=os.getenv("dbname")
+    )
         cursor = db.cursor()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
@@ -95,7 +91,13 @@ def load_data():
 def read_root():
     global db, cursor
     try:
-        db = create_engine(DATABASE_URL)
+        db = psycopg2.connect(
+            user=os.getenv("user"),
+            password=os.getenv("password"),
+            host=os.getenv("host"),
+            port=os.getenv("port"),
+            dbname=os.getenv("dbname")
+        )
         cursor = db.cursor()
         cursor.execute("SELECT VERSION()")
         version = cursor.fetchone()
