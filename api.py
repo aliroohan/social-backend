@@ -40,13 +40,17 @@ ids = {}
 
 
 def initialize_db():
-    global db, cursor
-    db = pymysql.connect(host=os.getenv("DB_HOST"),
+    global db, cursor, connection
+    try:
+        connection = pymysql.connect(
+            host=os.getenv("DB_HOST"),
             user=os.getenv("DB_USER"),
             password=os.getenv("DB_PASSWORD"),
             database=os.getenv("DB_NAME"),
-            port=int(os.getenv("DB_PORT", 3306)))
-    cursor = db.cursor()
+            port=int(os.getenv("DB_PORT", 3306))
+        )
+    except pymysql.MySQLError as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.on_event("startup")
 async def startup_event():
@@ -81,10 +85,22 @@ def load_data():
 
 @app.get("/")
 def read_root():
-    cursor.execute("SELECT VERSION()")
-    version = cursor.fetchone()
-    return {"db_version": version}
-    
+    initialize_db()
+    load_data()
+    try:
+        connection = pymysql.connect(
+            host=os.getenv("DB_HOST"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            database=os.getenv("DB_NAME"),
+            port=int(os.getenv("DB_PORT", 3306))
+        )
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT VERSION()")
+            version = cursor.fetchone()
+        return {"db_version": version}
+    except Exception as e:
+        return {"error": str(e)}
     
 
 
