@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from typing import List, Dict
 import psycopg2
+from dotenv import load_dotenv
 from collections import defaultdict
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -19,6 +20,7 @@ class Post(BaseModel):
     user_name: str = ""
     content:str = "";
 
+load_dotenv()
 # Global variables
 db = None
 cursor = None
