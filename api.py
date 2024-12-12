@@ -85,8 +85,7 @@ def load_data():
 
 @app.get("/")
 def read_root():
-    initialize_db()
-    load_data()
+    global db, cursor, connection
     try:
         connection = pymysql.connect(
             host=os.getenv("DB_HOST"),
@@ -95,9 +94,10 @@ def read_root():
             database=os.getenv("DB_NAME"),
             port=int(os.getenv("DB_PORT", 3306))
         )
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT VERSION()")
-            version = cursor.fetchone()
+        cursor = connection.cursor()
+        cursor.execute("SELECT VERSION()")
+        version = cursor.fetchone()
+        load_data()
         return {"db_version": version}
     except Exception as e:
         return {"error": str(e)}
