@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from typing import List, Dict
-import pymysql
+import psycopg2
+from dotenv import load_dotenv
 from collections import defaultdict
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -43,14 +44,14 @@ app.add_middleware(
 def initialize_db():
     global db, cursor
     try:
-        db = pymysql.connect(
-            host=os.getenv("DB_HOST"),
-            user=os.getenv("DB_USER"),
-            password=os.getenv("DB_PASSWORD"),
-            database=os.getenv("DB_NAME"),
-            port=int(os.getenv("DB_PORT", 3306))
-        )
-    except pymysql.MySQLError as e:
+        db = psycopg2.connect(
+        user=os.getenv("user"),
+        password=os.getenv("password"),
+        host=os.getenv("host"),
+        port=os.getenv("port"),
+        dbname=os.getenv("dbname")
+    )
+    except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.on_event("startup")
@@ -81,14 +82,14 @@ def load_data():
             users[id] = name
             ids[name] = id
 
-    except pymysql.MySQLError as e:
+    except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.get("/")
 def read_root():
     global db, cursor
     try:
-        db = pymysql.connect(
+        db = psycopg2.connect(
             host=os.getenv("DB_HOST"),
             user=os.getenv("DB_USER"),
             password=os.getenv("DB_PASSWORD"),
@@ -112,7 +113,7 @@ async def get_posts(user_id: int) -> List[Post]:
         cursor.execute("SELECT content FROM posts WHERE user_id = %s", (user_id,))
         posts = cursor.fetchall()
         return [Post(user_id=user_id, user_name=users[user_id], content=post[0]) for post in posts]
-    except pymysql.MySQLError as e:
+    except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 
@@ -170,7 +171,7 @@ async def create_user(name: str, email: str, password: str) -> Dict:
         db.commit()
         load_data()
         return {"message": f"User '{name}' added successfully"}
-    except pymysql.MySQLError as e:
+    except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.get("/user/")
@@ -193,7 +194,7 @@ async def get_user(name: str, password: str):
                 return user
             else:   
                 raise HTTPException(status_code=400, detail="Password is incorrect")
-        except pymysql.MySQLError as e:
+        except Exception as e:
             raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.post("/posts/")
@@ -203,7 +204,7 @@ async def create_post(user_id: int, content: str) -> Dict:
         cursor.execute("INSERT INTO posts (user_id, content) VALUES (%s, %s)", (user_id, content))
         db.commit()
         return {"message": "Post added successfully"}
-    except pymysql.MySQLError as e:
+    except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.post("/friend/{user_id1}/{user_id2}")
