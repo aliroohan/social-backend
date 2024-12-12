@@ -111,6 +111,7 @@ def read_root():
 @app.get("/posts/", response_model=List[Post])
 async def get_posts(user_id: int) -> List[Post]:
     load_data()
+    initialize_db()
     try:
         cursor.execute("SELECT content FROM posts WHERE user_id = %s", (user_id,))
         posts = cursor.fetchall()
@@ -165,6 +166,7 @@ async def get_suggested_friends(user_id: int) -> List[int]:
 @app.post("/users/")
 async def create_user(name: str, email: str, password: str) -> Dict:
     load_data()
+    initialize_db()
     if name in ids.keys():
         raise HTTPException(status_code=400, detail="User already exists")
     try:
@@ -179,6 +181,7 @@ async def create_user(name: str, email: str, password: str) -> Dict:
 @app.get("/user/")
 async def get_user(name: str, password: str):
     load_data()
+    initialize_db()
     if name not in ids.keys():
         raise HTTPException(status_code=404, detail="User not found")
     else:
@@ -202,6 +205,7 @@ async def get_user(name: str, password: str):
 @app.post("/posts/")
 async def create_post(user_id: int, content: str) -> Dict:
     load_data()
+    initialize_db()
     try:
         cursor.execute("INSERT INTO posts (user_id, content) VALUES (%s, %s)", (user_id, content))
         db.commit()
@@ -212,6 +216,7 @@ async def create_post(user_id: int, content: str) -> Dict:
 @app.post("/friend/{user_id1}/{user_id2}")
 async def create_friendship(user_id1: int, user_id2: int) -> Dict:
     load_data()
+    initialize_db()
     try:
         if user_id1 == user_id2:
             raise HTTPException(status_code=400, detail="Users cannot be friends with themselves")
