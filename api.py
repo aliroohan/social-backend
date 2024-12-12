@@ -4,6 +4,7 @@ import pymysql
 from collections import defaultdict
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+import os
 
 app = FastAPI()
 
@@ -37,17 +38,14 @@ ids = {}
 #        allow_headers=["*"],  # Allows all headers
 #    )
 
-# Database initialization
-db_config = {
-    "host": "b0fajpaxmm10ayzpn5fc-mysql.services.clever-cloud.com",
-    "user": "u5qeurgwzdm0lvog",
-    "password": "9RwFVLPiJ8quu0FuMDOn",
-    "database": "b0fajpaxmm10ayzpn5fc"
-}
 
 def initialize_db():
     global db, cursor
-    db = pymysql.connect(**db_config)
+    db = pymysql.connect(host=os.getenv("DB_HOST"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            database=os.getenv("DB_NAME"),
+            port=int(os.getenv("DB_PORT", 3306)))
     cursor = db.cursor()
 
 @app.on_event("startup")
@@ -82,8 +80,13 @@ def load_data():
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.get("/")
-async def root():
-    return {"message": "Welcome to the social network API"}
+def read_root():
+    cursor.execute("SELECT VERSION()")
+    version = cursor.fetchone()
+    return {"db_version": version}
+    
+    
+
 
 @app.get("/posts/", response_model=List[Post])
 async def get_posts(user_id: int) -> List[Post]:
