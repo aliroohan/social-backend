@@ -50,6 +50,7 @@ def initialize_db():
         port=os.getenv("port"),
         dbname=os.getenv("dbname")
     )
+        cursor = db.cursor()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
@@ -62,19 +63,19 @@ async def startup_event():
 
 def load_data():
     try:
-        cursor.execute("SELECT user_id, name FROM users")
+        cursor.execute("SELECT id, name FROM users")
         users_data = cursor.fetchall()
         for user in users_data:
             graph[user[0]] = set()
 
-        cursor.execute("SELECT user_id1, user_id2 FROM friendships")
+        cursor.execute("SELECT user1_id, user2_id FROM friendship")
         friendships = cursor.fetchall()
         for friend_pair in friendships:
             user1, user2 = friend_pair
             graph[user1].add(user2)
             graph[user2].add(user1)
         
-        cursor.execute("SELECT user_id, name FROM users")
+        cursor.execute("SELECT id, name FROM users")
         users_data = cursor.fetchall()
         for user in users_data:
             id, name = user
@@ -180,7 +181,7 @@ async def get_user(name: str, password: str):
         raise HTTPException(status_code=404, detail="User not found")
     else:
         try:
-            cursor.execute("SELECT user_id, name, email, password FROM users WHERE name = %s", (name,))
+            cursor.execute("SELECT id, name, email, password FROM users WHERE name = %s", (name,))
             user_data = cursor.fetchone()
 
             if user_data is None:
@@ -221,8 +222,8 @@ async def create_friendship(user_id1: int, user_id2: int) -> Dict:
 
         graph[user_id1].add(user_id2)
         graph[user_id2].add(user_id1)
-        cursor.execute("INSERT INTO friendships (user_id1, user_id2) VALUES (%s, %s)", (user_id1, user_id2))
-        cursor.execute("INSERT INTO friendships (user_id1, user_id2) VALUES (%s, %s)", (user_id2, user_id1))
+        cursor.execute("INSERT INTO friendships (user1_id, user2_id1) VALUES (%s, %s)", (user_id1, user_id2))
+        cursor.execute("INSERT INTO friendships (user1_id, user2_id1) VALUES (%s, %s)", (user_id2, user_id1))
         db.commit()
         return {"message": f"Friendship created between {user_id1} and {user_id2}"}
     except HTTPException:
