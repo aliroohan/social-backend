@@ -40,9 +40,9 @@ ids = {}
 
 
 def initialize_db():
-    global db, cursor, connection
+    global db, cursor
     try:
-        connection = pymysql.connect(
+        db = pymysql.connect(
             host=os.getenv("DB_HOST"),
             user=os.getenv("DB_USER"),
             password=os.getenv("DB_PASSWORD"),
@@ -85,16 +85,16 @@ def load_data():
 
 @app.get("/")
 def read_root():
-    global db, cursor, connection
+    global db, cursor
     try:
-        connection = pymysql.connect(
+        db = pymysql.connect(
             host=os.getenv("DB_HOST"),
             user=os.getenv("DB_USER"),
             password=os.getenv("DB_PASSWORD"),
             database=os.getenv("DB_NAME"),
             port=int(os.getenv("DB_PORT", 3306))
         )
-        cursor = connection.cursor()
+        cursor = db.cursor()
         cursor.execute("SELECT VERSION()")
         version = cursor.fetchone()
         load_data()
@@ -217,6 +217,6 @@ async def create_friendship(user_id1: int, user_id2: int) -> Dict:
         db.commit()
         return {"message": f"Friendship created between {user_id1} and {user_id2}"}
     except HTTPException:
-        raise
+        raise HTTPException(status_code=400, detail="Friendship already exists")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
