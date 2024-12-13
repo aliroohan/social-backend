@@ -21,9 +21,21 @@ class Post(BaseModel):
     content:str = "";
 
 load_dotenv()
-# Global variables
+
 db = None
 cursor = None
+try:
+    db = psycopg2.connect(
+            user=os.getenv("user"),
+            password=os.getenv("password"),
+            host=os.getenv("host"),
+            port=os.getenv("port"),
+            dbname=os.getenv("dbname")
+        )
+    cursor = db.cursor()
+except Exception as e:
+    raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
 graph = defaultdict(set)
 users = {}
 ids = {}
@@ -41,24 +53,8 @@ app.add_middleware(
        allow_headers=["*"],  # Allows all headers
    )
 
-
-def initialize_db():
-    global db, cursor
-    try:
-        db = psycopg2.connect(
-        user=os.getenv("user"),
-        password=os.getenv("password"),
-        host=os.getenv("host"),
-        port=os.getenv("port"),
-        dbname=os.getenv("dbname")
-    )
-        cursor = db.cursor()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
-
 @app.on_event("startup")
 async def startup_event():
-    initialize_db()
     load_data()
 
 
@@ -113,14 +109,14 @@ async def get_posts(user_id: int) -> List[Post]:
     load_data()
     
     try:
-        db = psycopg2.connect(
-        user=os.getenv("user"),
-        password=os.getenv("password"),
-        host=os.getenv("host"),
-        port=os.getenv("port"),
-        dbname=os.getenv("dbname")
-    )
-        cursor = db.cursor()
+    #     db = psycopg2.connect(
+    #     user=os.getenv("user"),
+    #     password=os.getenv("password"),
+    #     host=os.getenv("host"),
+    #     port=os.getenv("port"),
+    #     dbname=os.getenv("dbname")
+    # )
+    #     cursor = db.cursor()
         cursor.execute("SELECT content FROM posts WHERE user_id = %s", (user_id,))
         posts = cursor.fetchall()
         return [Post(user_id=user_id, user_name=users[user_id], content=post[0]) for post in posts]
@@ -143,14 +139,14 @@ async def get_friends(user_id: int) -> List[User]:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/mutual-friends/{user_id1}/{user_id2}")
-async def get_mutual_friends(user_id1: int, user_id2: int) -> List[int]:
+async def get_mutual_friends(user_id1: int, user_id2: int) -> List[User]:
     load_data()
     try:
         if user_id1 not in graph or user_id2 not in graph:
             raise HTTPException(status_code=404, detail="One or both users not found")
         
         mutuals = [friend for friend in graph[user_id1] if friend in graph[user_id2]]
-        return [users[friend] for friend in mutuals]
+        return [User(id=friend,name=users[friend]) for friend in mutuals]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -178,14 +174,14 @@ async def create_user(name: str, email: str, password: str) -> Dict:
     if name in ids.keys():
         raise HTTPException(status_code=400, detail="User already exists")
     try:
-        db = psycopg2.connect(
-        user=os.getenv("user"),
-        password=os.getenv("password"),
-        host=os.getenv("host"),
-        port=os.getenv("port"),
-        dbname=os.getenv("dbname")
-    )
-        cursor = db.cursor()
+    #     db = psycopg2.connect(
+    #     user=os.getenv("user"),
+    #     password=os.getenv("password"),
+    #     host=os.getenv("host"),
+    #     port=os.getenv("port"),
+    #     dbname=os.getenv("dbname")
+    # )
+    #     cursor = db.cursor()
         cursor.execute("INSERT INTO users (name, email, password) VALUES (%s, %s, %s)", 
                       (name, email, password))
         db.commit()
@@ -202,14 +198,14 @@ async def get_user(name: str, password: str):
         raise HTTPException(status_code=404, detail="User not found")
     else:
         try:
-            db = psycopg2.connect(
-            user=os.getenv("user"),
-            password=os.getenv("password"),
-            host=os.getenv("host"),
-            port=os.getenv("port"),
-            dbname=os.getenv("dbname")
-            )
-            cursor = db.cursor()
+            # db = psycopg2.connect(
+            # user=os.getenv("user"),
+            # password=os.getenv("password"),
+            # host=os.getenv("host"),
+            # port=os.getenv("port"),
+            # dbname=os.getenv("dbname")
+            # )
+            # cursor = db.cursor()
             cursor.execute("SELECT id, name, email, password FROM users WHERE name = %s", (name,))
             user_data = cursor.fetchone()
 
@@ -231,14 +227,14 @@ async def create_post(user_id: int, content: str) -> Dict:
     load_data()
     
     try:
-        db = psycopg2.connect(
-        user=os.getenv("user"),
-        password=os.getenv("password"),
-        host=os.getenv("host"),
-        port=os.getenv("port"),
-        dbname=os.getenv("dbname")
-    )
-        cursor = db.cursor()
+    #     db = psycopg2.connect(
+    #     user=os.getenv("user"),
+    #     password=os.getenv("password"),
+    #     host=os.getenv("host"),
+    #     port=os.getenv("port"),
+    #     dbname=os.getenv("dbname")
+    # )
+    #     cursor = db.cursor()
         cursor.execute("INSERT INTO posts (user_id, content) VALUES (%s, %s)", (user_id, content))
         db.commit()
         return {"message": "Post added successfully"}
@@ -250,14 +246,14 @@ async def create_friendship(user_id1: int, user_id2: int) -> Dict:
     load_data()
     
     try:
-        db = psycopg2.connect(
-        user=os.getenv("user"),
-        password=os.getenv("password"),
-        host=os.getenv("host"),
-        port=os.getenv("port"),
-        dbname=os.getenv("dbname")
-    )
-        cursor = db.cursor()
+    #     db = psycopg2.connect(
+    #     user=os.getenv("user"),
+    #     password=os.getenv("password"),
+    #     host=os.getenv("host"),
+    #     port=os.getenv("port"),
+    #     dbname=os.getenv("dbname")
+    # )
+    #     cursor = db.cursor()
         if user_id1 == user_id2:
             raise HTTPException(status_code=400, detail="Users cannot be friends with themselves")
 
