@@ -233,3 +233,23 @@ async def create_friendship(user_id1: int, user_id2: int) -> Dict:
         raise HTTPException(status_code=400, detail="Friendship already exists")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.delete("/friend/{user_id1}/{user_id2}")
+async def delete_friendship(user_id1: int, user_id2: int) -> Dict:
+    load_data()
+    
+    try:
+        if user_id1 not in graph or user_id2 not in graph:
+            raise HTTPException(status_code=404, detail="One or both users not found")
+
+        if user_id2 not in graph[user_id1]:
+            raise HTTPException(status_code=400, detail="Friendship does not exist")
+
+        graph[user_id1].remove(user_id2)
+        graph[user_id2].remove(user_id1)
+        cursor.execute("DELETE FROM friendships WHERE user1_id = %s AND user2_id = %s", (user_id1, user_id2))
+        cursor.execute("DELETE FROM friendships WHERE user1_id = %s AND user2_id = %s", (user_id2, user_id1))
+        db.commit()
+        return {"message": f"Friendship between {user_id1} and {user_id2} deleted"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
