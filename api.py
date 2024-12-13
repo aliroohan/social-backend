@@ -225,8 +225,8 @@ async def create_friendship(user_id1: int, user_id2: int) -> Dict:
 
         graph[user_id1].add(user_id2)
         graph[user_id2].add(user_id1)
-        cursor.execute("INSERT INTO friendship (user1_id, user2_id1) VALUES (%s, %s)", (user_id1, user_id2))
-        cursor.execute("INSERT INTO friendship (user1_id, user2_id1) VALUES (%s, %s)", (user_id2, user_id1))
+        cursor.execute("INSERT INTO friendship (user1_id, user2_id) VALUES (%s, %s)", (user_id1, user_id2))
+        cursor.execute("INSERT INTO friendship (user1_id, user2_id) VALUES (%s, %s)", (user_id2, user_id1))
         db.commit()
         return {"message": f"Friendship created between {user_id1} and {user_id2}"}
     except HTTPException:
