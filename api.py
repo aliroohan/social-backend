@@ -144,6 +144,18 @@ async def get_mutual_friends(user_id1: int, user_id2: int) -> List[User]:
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/mutual-count/{user_id1}/{user_id2}")
+async def get_mutual_count(user_id1: int, user_id2: int) -> int:
+    load_data()
+    try:
+        if user_id1 not in graph or user_id2 not in graph:
+            raise HTTPException(status_code=404, detail="One or both users not found")
+        
+        mutuals = [friend for friend in graph[user_id1] if friend in graph[user_id2]]
+        return len(mutuals)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/suggested-friends/{user_id}")
 async def get_suggested_friends(user_id: int) -> List[int]:
     load_data()
