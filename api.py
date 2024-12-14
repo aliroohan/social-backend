@@ -177,12 +177,12 @@ async def create_user(name: str, email: str, password: str) -> Dict:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.get("/users/")
-async def get_users() -> List[User]:
+async def get_users(id: int) -> List[User]:
     load_data()
     try:
         cursor.execute("SELECT id, name FROM users")
         users_data = cursor.fetchall()
-        return [User(id=user[0], name=user[1]) for user in users_data]
+        return [User(id=user[0], name=user[1]) for user in users_data if user[0] != id]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
