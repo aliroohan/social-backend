@@ -126,6 +126,8 @@ async def get_friends(user_id: int) -> List[User]:
         for friend in list(graph[user_id]):
             list1.append(User(id=friend, name=users[friend]))
         
+        if len(list1) == 0:
+            raise HTTPException(status_code=404, detail="User has no friends")
         return list1
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -171,6 +173,16 @@ async def create_user(name: str, email: str, password: str) -> Dict:
         db.commit()
         load_data()
         return {"message": f"User '{name}' added successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+@app.get("/users/")
+async def get_users() -> List[User]:
+    load_data()
+    try:
+        cursor.execute("SELECT id, name FROM users")
+        users_data = cursor.fetchall()
+        return [User(id=user[0], name=user[1]) for user in users_data]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
