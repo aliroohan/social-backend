@@ -218,7 +218,7 @@ async def get_user(name: str, password: str):
                 raise HTTPException(status_code=404, detail="User not found")
 
             passcode = user_data[3]
-            user = User(id=user_data[0], name=user_data[1], email=user_data[2], password=user_data[3])
+            user = User(id=user_data[0], name=user_data[1], email=user_data[2], password=user_data[3],mutualCount=get_mutual_count(ids[name],user_data[0]))
 
             if passcode == password:
                 return user
