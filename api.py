@@ -65,7 +65,8 @@ def load_data():
         cursor.execute("SELECT id, name FROM users")
         users_data = cursor.fetchall()
         for user in users_data:
-            graph[user[0]] = set()
+            id, name = user
+            graph[id] = set()
 
         cursor.execute("SELECT user1_id, user2_id FROM friendship")
         friendships = cursor.fetchall()
@@ -83,6 +84,9 @@ def load_data():
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+load_data()
+print(graph.keys())
 
 @app.get("/")
 def read_root():
@@ -122,7 +126,7 @@ async def get_friends(user_id: int) -> List[User]:
     load_data()
     try:
         list1 = []
-        if user_id not in graph:
+        if user_id not in list(graph.keys):
             raise HTTPException(status_code=404, detail="User not found")
         for friend in list(graph[user_id]):
             list1.append(User(id=friend, name=users[friend]))
@@ -158,10 +162,10 @@ async def get_mutual_count(user_id1: int, user_id2: int) -> int:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/suggested-friends/{user_id}")
-async def get_suggested_friends(user_id: int) -> List[int]:
+async def get_suggested_friends(user_id: int) -> List[User]:
     load_data()
     try:
-        if user_id not in graph.keys():
+        if user_id not in graph:
             raise HTTPException(status_code=404, detail="User not found")
 
         suggestions = set()
