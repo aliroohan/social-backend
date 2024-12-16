@@ -126,8 +126,6 @@ async def get_friends(user_id: int) -> List[User]:
     load_data()
     try:
         list1 = []
-        if user_id not in list(graph.keys):
-            raise HTTPException(status_code=404, detail="User not found")
         for friend in list(graph[user_id]):
             list1.append(User(id=friend, name=users[friend]))
         
@@ -165,9 +163,9 @@ def get_mutual_count(user_id1: int, user_id2: int) -> int:
 async def get_suggested_friends(user_id: int) -> List[User]:
     load_data()
     try:
-        if user_id not in graph:
-            raise HTTPException(status_code=404, detail="User not found")
-
+        # if user_id not in graph.keys():
+        #     raise HTTPException(status_code=404, detail="User not found")
+    
         suggestions = set()
         for friend in graph[user_id]:
             for friend_of_friend in graph[friend]:
