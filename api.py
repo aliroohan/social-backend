@@ -14,6 +14,7 @@ class User(BaseModel):
     name: str = ""
     email: str = ""
     password: str = ""
+    mutualCount:int = 0
 
 class Post(BaseModel):   
     user_id: int
