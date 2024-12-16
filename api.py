@@ -149,8 +149,8 @@ async def get_mutual_friends(user_id1: int, user_id2: int) -> List[User]:
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/mutual-count/{user_id1}/{user_id2}")
-async def get_mutual_count(user_id1: int, user_id2: int) -> int:
+
+def get_mutual_count(user_id1: int, user_id2: int) -> int:
     load_data()
     try:
         if user_id1 not in graph or user_id2 not in graph:
