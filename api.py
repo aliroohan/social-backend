@@ -168,7 +168,7 @@ async def get_suggested_friends(user_id: int) -> List[int]:
             for friend_of_friend in graph[friend]:
                 if friend_of_friend != user_id and friend_of_friend not in graph[user_id]:
                     suggestions.add(friend_of_friend)
-        suggest = [users[friend] for friend in list(suggestions)]
+        suggest = [User(id=friend,name=users[friend]) for friend in list(suggestions)]
         return suggest
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
