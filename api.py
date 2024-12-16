@@ -88,6 +88,11 @@ def load_data():
 load_data()
 print(graph.keys())
 
+def get_mutual_count(user_id1: int, user_id2: int) -> int:
+    load_data()
+    mutuals = [friend for friend in graph[user_id1] if friend in graph[user_id2]]
+    return len(mutuals)
+
 @app.get("/")
 def read_root():
     global db, cursor
@@ -148,24 +153,11 @@ async def get_mutual_friends(user_id1: int, user_id2: int) -> List[User]:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-def get_mutual_count(user_id1: int, user_id2: int) -> int:
-    load_data()
-    try:
-        if user_id1 not in graph or user_id2 not in graph:
-            raise HTTPException(status_code=404, detail="One or both users not found")
-        
-        mutuals = [friend for friend in graph[user_id1] if friend in graph[user_id2]]
-        return len(mutuals)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/suggested-friends/{user_id}")
 async def get_suggested_friends(user_id: int) -> List[User]:
     load_data()
     try:
-        # if user_id not in graph.keys():
-        #     raise HTTPException(status_code=404, detail="User not found")
-    
         suggestions = set()
         for friend in graph[user_id]:
             for friend_of_friend in graph[friend]:
@@ -197,7 +189,7 @@ async def get_users(id: int) -> List[User]:
     try:
         cursor.execute("SELECT id, name FROM users")
         users_data = cursor.fetchall()
-        return [User(id=user[0], name=user[1]) for user in users_data if user[0] != id]
+        return [User(id=user[0], name=user[1],email="", password="",mutualCount=get_mutual_count(user[0],id)) for user in users_data if user[0] != id]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
