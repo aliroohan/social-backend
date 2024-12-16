@@ -161,7 +161,7 @@ async def get_mutual_count(user_id1: int, user_id2: int) -> int:
 async def get_suggested_friends(user_id: int) -> List[int]:
     load_data()
     try:
-        if user_id not in graph:
+        if user_id not in graph.keys():
             raise HTTPException(status_code=404, detail="User not found")
 
         suggestions = set()
