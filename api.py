@@ -132,7 +132,7 @@ async def get_friends(user_id: int) -> List[User]:
     try:
         list1 = []
         for friend in list(graph[user_id]):
-            list1.append(User(id=friend, name=users[friend]))
+            list1.append(User(id=friend, name=users[friend], password="",mutualCount=get_mutual_count(friend,user_id)))
         
         if len(list1) == 0:
             raise HTTPException(status_code=404, detail="User has no friends")
@@ -163,7 +163,7 @@ async def get_suggested_friends(user_id: int) -> List[User]:
             for friend_of_friend in graph[friend]:
                 if friend_of_friend != user_id and friend_of_friend not in graph[user_id]:
                     suggestions.add(friend_of_friend)
-        suggest = [User(id=friend,name=users[friend]) for friend in list(suggestions)]
+        suggest = [User(id=friend,name=users[friend], password="",mutualCount=get_mutual_count(friend,user_id)) for friend in list(suggestions)]
         return suggest
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
