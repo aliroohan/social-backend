@@ -196,8 +196,7 @@ async def create_user(name: str, email: str, password: str) -> Dict:
     if name in ids.keys():
         raise HTTPException(status_code=400, detail="User already exists")
     try:
-        cursor.execute("INSERT INTO users (name, email, password) VALUES (%s, %s, %s)", 
-                      (name, email, password))
+        cursor.execute("INSERT INTO users (name, email, password,bio) VALUES (%s, %s, %s, " + "'Hi, I am " + name + "')", (name, email, password))
         db.commit()
         load_data()
         return {"message": f"User '{name}' added successfully"}
