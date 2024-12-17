@@ -126,6 +126,25 @@ async def get_posts(user_id: int) -> List[Post]:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 
+@app.get("/post/")
+async def get_post(user_ids: List[int]) -> List[Post]:
+    load_data()
+    try:
+        posts = []
+        user_ids_tuple = tuple(user_ids)
+        
+        # Use IN clause to get all posts for the given user_ids
+        cursor.execute("SELECT user_id, content FROM posts WHERE user_id IN %s ORDER BY user_id ASC", (user_ids_tuple,))
+        fetched_posts = cursor.fetchall()
+        
+        for user_id, content in fetched_posts:
+            posts.append(Post(user_id=user_id, user_name=users[user_id], content=content))
+        
+        return posts
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+
 @app.get("/friends/{user_id}", response_model=List[User])
 async def get_friends(user_id: int) -> List[User]:
     load_data()
