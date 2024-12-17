@@ -16,10 +16,11 @@ class User(BaseModel):
     password: str = ""
     mutualCount:int = 0
 
-class Post(BaseModel):   
+class Post(BaseModel):  
     user_id: int
     user_name: str = ""
     content:str = "";
+    id: int 
 
 load_dotenv()
 
@@ -134,11 +135,11 @@ async def get_post(user_ids: List[int]) -> List[Post]:
         user_ids_tuple = tuple(user_ids)
         
         # Use IN clause to get all posts for the given user_ids
-        cursor.execute("SELECT id, content FROM posts WHERE user_id IN %s ORDER BY id ASC", (user_ids_tuple,))
+        cursor.execute("SELECT id,user_id, content FROM posts WHERE user_id IN %s ORDER BY id ASC", (user_ids_tuple,))
         fetched_posts = cursor.fetchall()
         
-        for user_id, content in fetched_posts:
-            posts.append(Post(user_id=user_id, user_name=users[user_id], content=content))
+        for post_id,user_id, content in fetched_posts:
+            posts.append(Post(user_id=user_id, user_name=users[user_id], content=content,id=post_id))
         
         return posts
     except Exception as e:
