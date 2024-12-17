@@ -21,7 +21,7 @@ class Post(BaseModel):
     user_id: int
     user_name: str = ""
     content:str = "";
-    time: str = ""
+    time:str = ""
 
 load_dotenv()
 
@@ -140,7 +140,7 @@ async def get_post(user_ids: List[int]) -> List[Post]:
         fetched_posts = cursor.fetchall()
         
         for user_id, content,time in fetched_posts:
-            posts.append(Post(user_id=user_id, user_name=users[user_id], content=content,time=time))
+            posts.append(Post(user_id=user_id, user_name=users[user_id], content=content,time=str(time)))
         
         return posts
     except Exception as e:
