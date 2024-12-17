@@ -15,12 +15,13 @@ class User(BaseModel):
     email: str = ""
     password: str = ""
     mutualCount:int = 0
+    bio: str = ""
 
 class Post(BaseModel):  
     user_id: int
     user_name: str = ""
     content:str = "";
-    id: int 
+    time: str = ""
 
 load_dotenv()
 
@@ -135,11 +136,11 @@ async def get_post(user_ids: List[int]) -> List[Post]:
         user_ids_tuple = tuple(user_ids)
         
         # Use IN clause to get all posts for the given user_ids
-        cursor.execute("SELECT id,user_id, content FROM posts WHERE user_id IN %s ORDER BY id ASC", (user_ids_tuple,))
+        cursor.execute("SELECT user_id, content, time FROM posts WHERE user_id IN %s ORDER BY time,id ASC", (user_ids_tuple,))
         fetched_posts = cursor.fetchall()
         
-        for post_id,user_id, content in fetched_posts:
-            posts.append(Post(user_id=user_id, user_name=users[user_id], content=content,id=post_id))
+        for user_id, content,time in fetched_posts:
+            posts.append(Post(user_id=user_id, user_name=users[user_id], content=content,time=time))
         
         return posts
     except Exception as e:
@@ -183,7 +184,7 @@ async def get_suggested_friends(user_id: int) -> List[User]:
             for friend_of_friend in graph[friend]:
                 if friend_of_friend != user_id and friend_of_friend not in graph[user_id]:
                     suggestions.add(friend_of_friend)
-        suggest = [User(id=friend,name=users[friend], password="",mutualCount=get_mutual_count(friend,user_id)) for friend in list(suggestions)]
+        suggest = [User(id=friend,name=users[friend],mutualCount=get_mutual_count(friend,user_id)) for friend in list(suggestions)]
         return suggest
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -207,11 +208,35 @@ async def create_user(name: str, email: str, password: str) -> Dict:
 async def get_users(id: int) -> List[User]:
     load_data()
     try:
-        cursor.execute("SELECT id, name FROM users")
+        cursor.execute("SELECT id, name, bio FROM users")
         users_data = cursor.fetchall()
-        return [User(id=user[0], name=user[1],email="", password="",mutualCount=get_mutual_count(user[0],id)) for user in users_data if user[0] != id]
+        return [User(id=user[0], name=user[1],email="", password="",mutualCount=get_mutual_count(user[0],id), bio=user[2]) for user in users_data if user[0] != id]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+@app.post("/bio/")
+async def create_bio(user_id: int, bio: str) -> Dict:
+    load_data()
+    
+    try:
+        cursor.execute("UPDATE users SET bio = %s WHERE id = %s", (bio, user_id))
+        db.commit()
+        return {"message": "Bio added successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+@app.get("/bio/")
+async def get_bio(user_id: int) -> Dict:
+    load_data()
+    
+    try:
+        cursor.execute("SELECT bio FROM users WHERE id = %s", (user_id,))
+        bio = cursor.fetchone()
+        if bio is None:
+            raise HTTPException(status_code=404, detail="Bio not found")
+        return {"bio": bio[0]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")   
 
 @app.get("/user/")
 async def get_user(name: str, password: str):
@@ -221,14 +246,14 @@ async def get_user(name: str, password: str):
         raise HTTPException(status_code=404, detail="User not found")
     else:
         try:
-            cursor.execute("SELECT id, name, email, password FROM users WHERE name = %s", (name,))
+            cursor.execute("SELECT id, name, email, password, bio FROM users WHERE name = %s", (name,))
             user_data = cursor.fetchone()
 
             if user_data is None:
                 raise HTTPException(status_code=404, detail="User not found")
 
             passcode = user_data[3]
-            user = User(id=user_data[0], name=user_data[1], email=user_data[2], password=user_data[3],mutualCount=get_mutual_count(ids[name],user_data[0]))
+            user = User(id=user_data[0], name=user_data[1], email=user_data[2], password=user_data[3],mutualCount=get_mutual_count(ids[name],user_data[0]), bio=user_data[4])
 
             if passcode == password:
                 return user
