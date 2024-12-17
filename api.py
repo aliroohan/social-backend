@@ -127,7 +127,7 @@ async def get_posts(user_id: int) -> List[Post]:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 
-@app.get("/post/")
+@app.post("/post/")
 async def get_post(user_ids: List[int]) -> List[Post]:
     load_data()
     try:
