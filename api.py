@@ -214,7 +214,7 @@ async def get_users(id: int) -> List[User]:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.post("/bio/")
-async def create_bio(user_id: int, bio: str) -> Dict:
+async def edit_bio(user_id: int, bio: str) -> Dict:
     load_data()
     
     try:
