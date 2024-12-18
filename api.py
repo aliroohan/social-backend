@@ -115,7 +115,7 @@ def read_root():
         return {"error": str(e)}
     
 
-
+# not using
 @app.get("/posts/", response_model=List[Post])
 async def get_posts(user_id: int) -> List[Post]:
     load_data()
@@ -127,7 +127,8 @@ async def get_posts(user_id: int) -> List[Post]:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
-
+# get all posts of friends
+# called at 1st page load
 @app.post("/post/")
 async def get_post(user_ids: List[int]) -> List[Post]:
     load_data()
@@ -146,7 +147,8 @@ async def get_post(user_ids: List[int]) -> List[Post]:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
-
+# get all friends of a user
+# called at my friends page
 @app.get("/friends/{user_id}", response_model=List[User])
 async def get_friends(user_id: int) -> List[User]:
     load_data()
@@ -161,6 +163,8 @@ async def get_friends(user_id: int) -> List[User]:
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# get all mutual friends of two users
+# called at mutual friends page
 @app.get("/mutual-friends/{user_id1}/{user_id2}")
 async def get_mutual_friends(user_id1: int, user_id2: int) -> List[User]:
     load_data()
@@ -174,7 +178,8 @@ async def get_mutual_friends(user_id1: int, user_id2: int) -> List[User]:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-
+# get all suggested friends of a user
+# called at suggested friends page
 @app.get("/suggested-friends/{user_id}")
 async def get_suggested_friends(user_id: int) -> List[User]:
     load_data()
@@ -189,6 +194,9 @@ async def get_suggested_friends(user_id: int) -> List[User]:
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# Create a new user
+# called at sign up
 @app.post("/users/")
 async def create_user(name: str, email: str, password: str) -> Dict:
     load_data()
@@ -203,6 +211,9 @@ async def create_user(name: str, email: str, password: str) -> Dict:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
+
+# Get all users except the user with the given id
+# called in add friend page
 @app.get("/users/")
 async def get_users(id: int) -> List[User]:
     load_data()
@@ -213,6 +224,8 @@ async def get_users(id: int) -> List[User]:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
+# add bio
+# called when bio is edited
 @app.post("/bio/")
 async def edit_bio(user_id: int, bio: str) -> Dict:
     load_data()
@@ -223,6 +236,7 @@ async def edit_bio(user_id: int, bio: str) -> Dict:
         return {"message": "Bio added successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
 
 @app.get("/bio/")
 async def get_bio(user_id: int) -> Dict:
@@ -237,6 +251,8 @@ async def get_bio(user_id: int) -> Dict:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")   
 
+# get user data
+# called at login
 @app.get("/user/")
 async def get_user(name: str, password: str):
     load_data()
@@ -261,10 +277,13 @@ async def get_user(name: str, password: str):
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
+
+# create post
+# called at create post page
 @app.post("/posts/")
 async def create_post(user_id: int, content: str) -> Dict:
     load_data()
-    
+
     try:
         cursor.execute("INSERT INTO posts (user_id, content) VALUES (%s, %s)", (user_id, content))
         db.commit()
@@ -272,6 +291,8 @@ async def create_post(user_id: int, content: str) -> Dict:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
+
+# called at add friend button
 @app.post("/friend/{user_id1}/{user_id2}")
 async def create_friendship(user_id1: int, user_id2: int) -> Dict:
     load_data()
@@ -297,6 +318,8 @@ async def create_friendship(user_id1: int, user_id2: int) -> Dict:
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+
+# called at remove friend button
 @app.delete("/friend/{user_id1}/{user_id2}")
 async def delete_friendship(user_id1: int, user_id2: int) -> Dict:
     load_data()
