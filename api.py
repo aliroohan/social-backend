@@ -44,7 +44,7 @@ users = {}
 ids = {}
 
 origins = [
-       "https://social-frontend-tau.vercel.app",
+       "https://conneco.vercel.app",
         "http://localhost:4200",
    ]
 
