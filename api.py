@@ -44,7 +44,7 @@ users = {}
 ids = {}
 
 origins = [
-       "https://conneco.vercel.app",
+       "https://connevo.vercel.app",
         "http://localhost:4200",
    ]
 
