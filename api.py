@@ -150,7 +150,7 @@ async def get_post(user_ids: List[int]) -> List[Post]:
         fetched_posts = cursor.fetchall()
         
         for id, user_id, content, time, likes_count in fetched_posts:
-            post = Post(id=id, user_id=user_id, user_name=users[user_id], content=content, time=str(time), likescount=likes_count)
+            post = Post(id=id, user_id=user_id, user_name=users[user_id], content=content, time=str(time), likesCount=likes_count)
             cursor.execute("SELECT user_id FROM likes WHERE post_id = %s", (post.id,))
             likes = cursor.fetchall()
             post.likes = [users[like[0]] for like in likes]
