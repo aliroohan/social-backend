@@ -16,12 +16,16 @@ class User(BaseModel):
     password: str = ""
     mutualCount:int = 0
     bio: str = ""
+    
 
-class Post(BaseModel):  
+class Post(BaseModel):
+    id: int  
     user_id: int
     user_name: str = ""
-    content:str = "";
+    content:str = ""
     time:str = ""
+    likesCount:int = 0
+    likes: List[str] = []
 
 load_dotenv()
 
@@ -121,9 +125,14 @@ async def get_posts(user_id: int) -> List[Post]:
     load_data()
     
     try:
-        cursor.execute("SELECT content FROM posts WHERE user_id = %s", (user_id,))
+        cursor.execute("SELECT id,content,likes_count FROM posts WHERE user_id = %s", (user_id,))
         posts = cursor.fetchall()
-        return [Post(user_id=user_id, user_name=users[user_id], content=post[0]) for post in posts]
+        result = [Post(id=post[0],user_id=user_id, user_name=users[user_id], content=post[1], likescount=post[2]) for post in posts]
+        for post in result:
+            cursor.execute("SELECT user_id FROM likes WHERE post_id = %s", (post.id,))
+            likes = cursor.fetchall()
+            post.likes = [users[like[0]] for like in likes]
+        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
@@ -137,11 +146,15 @@ async def get_post(user_ids: List[int]) -> List[Post]:
         user_ids_tuple = tuple(user_ids)
         
         # Use IN clause to get all posts for the given user_ids
-        cursor.execute("SELECT user_id, content, time FROM posts WHERE user_id IN %s ORDER BY time,id ASC", (user_ids_tuple,))
+        cursor.execute("SELECT id, user_id, content, time, likes_count FROM posts WHERE user_id IN %s ORDER BY time,id ASC", (user_ids_tuple,))
         fetched_posts = cursor.fetchall()
         
-        for user_id, content,time in fetched_posts:
-            posts.append(Post(user_id=user_id, user_name=users[user_id], content=content,time=str(time)))
+        for id, user_id, content, time, likes_count in fetched_posts:
+            post = Post(id=id, user_id=user_id, user_name=users[user_id], content=content, time=str(time), likescount=likes_count)
+            cursor.execute("SELECT user_id FROM likes WHERE post_id = %s", (post.id,))
+            likes = cursor.fetchall()
+            post.likes = [users[like[0]] for like in likes]
+            posts.append(post)
         
         return posts
     except Exception as e:
