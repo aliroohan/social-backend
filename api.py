@@ -16,7 +16,10 @@ class User(BaseModel):
     password: str = ""
     mutualCount:int = 0
     bio: str = ""
-    
+
+class Comment(BaseModel):
+    name: str = ""
+    comment: str = "" 
 
 class Post(BaseModel):
     id: int  
@@ -26,6 +29,8 @@ class Post(BaseModel):
     time:str = ""
     likesCount:int = 0
     likes: List[str] = []
+    commentCount:int = 0
+    comments: List[Comment] = []
 
 load_dotenv()
 
@@ -154,11 +159,15 @@ async def get_post(user_ids: List[int]) -> List[Post]:
             cursor.execute("SELECT user_id FROM likes WHERE post_id = %s", (post.id,))
             likes = cursor.fetchall()
             post.likes = [users[like[0]] for like in likes]
+            cursor.execute("SELECT user_id, comment FROM comments WHERE post_id = %s", (post.id,))
+            comments = cursor.fetchall()
+            post.comments = [Comment(users[comment[0]], comment[1]) for comment in comments]
             posts.append(post)
         
         return posts
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
 
 # get all friends of a user
 # called at my friends page
