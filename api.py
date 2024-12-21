@@ -394,3 +394,15 @@ async def unlike_post(user_id: int, post_id: int) -> Dict:
         return {"message": "Post unliked successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.post("/comment/")
+async def comment_post(user_id: int, post_id: int, comment: str) -> Dict:
+    load_data()
+    
+    try:
+        cursor.execute("INSERT INTO comments (user_id, post_id, comment) VALUES (%s, %s, %s)", (user_id, post_id, comment))
+        db.commit()
+        return {"message": "Comment added successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
