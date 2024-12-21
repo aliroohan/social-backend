@@ -151,11 +151,11 @@ async def get_post(user_ids: List[int]) -> List[Post]:
         user_ids_tuple = tuple(user_ids)
         
         # Use IN clause to get all posts for the given user_ids
-        cursor.execute("SELECT id, user_id, content, time, likes_count FROM posts WHERE user_id IN %s ORDER BY time,id ASC", (user_ids_tuple,))
+        cursor.execute("SELECT id, user_id, content, time, likes_count,comment_count FROM posts WHERE user_id IN %s ORDER BY time,id ASC", (user_ids_tuple,))
         fetched_posts = cursor.fetchall()
         
-        for id, user_id, content, time, likes_count in fetched_posts:
-            post = Post(id=id, user_id=user_id, user_name=users[user_id], content=content, time=str(time), likesCount=likes_count)
+        for id, user_id, content, time, likes_count, comment_count in fetched_posts:
+            post = Post(id=id, user_id=user_id, user_name=users[user_id], content=content, time=str(time), likesCount=likes_count, commentCount=comment_count)
             cursor.execute("SELECT user_id FROM likes WHERE post_id = %s", (post.id,))
             likes = cursor.fetchall()
             post.likes = [users[like[0]] for like in likes]
