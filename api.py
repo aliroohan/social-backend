@@ -352,3 +352,36 @@ async def delete_friendship(user_id1: int, user_id2: int) -> Dict:
         return {"message": f"Friendship between {user_id1} and {user_id2} deleted"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.post("/like/{user_id}/{post_id}")
+async def like_post(user_id: int, post_id: int) -> Dict:
+    load_data()
+    
+    try:
+        cursor.execute("SELECT user_id FROM likes WHERE post_id = %s", (post_id,))
+        likes = cursor.fetchall()
+        if (user_id,) in likes:
+            raise HTTPException(status_code=400, detail="Post already liked")
+
+        cursor.execute("INSERT INTO likes (user_id, post_id) VALUES (%s, %s)", (user_id, post_id))
+        db.commit()
+        return {"message": "Post liked successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.delete("/like/{user_id}/{post_id}")
+async def unlike_post(user_id: int, post_id: int) -> Dict:
+    load_data()
+    
+    try:
+        cursor.execute("SELECT user_id FROM likes WHERE post_id = %s", (post_id,))
+        likes = cursor.fetchall()
+        if (user_id,) not in likes:
+            raise HTTPException(status_code=400, detail="Post not liked")
+
+        cursor.execute("DELETE FROM likes WHERE user_id = %s AND post_id = %s", (user_id, post_id))
+        db.commit()
+        return {"message": "Post unliked successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
