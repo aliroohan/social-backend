@@ -161,7 +161,7 @@ async def get_post(user_ids: List[int]) -> List[Post]:
             post.likes = [users[like[0]] for like in likes]
             cursor.execute("SELECT user_id, comment FROM comments WHERE post_id = %s", (post.id,))
             comments = cursor.fetchall()
-            post.comments = [Comment(users[comment[0]], comment[1]) for comment in comments]
+            post.comments = [Comment(name=users[comment[0]], comment=comment[1]) for comment in comments]
             posts.append(post)
         
         return posts
